@@ -27,7 +27,21 @@ struct EscapeTime {
 
 // Escape time of iterating z^2 + c
 EscapeTime escapeTimeSmooth(vec2 z) {
-    // TODO
+    // NOTE: derive formula by literally manually calculating z^2 + c
+    // z^2 + c = (zr^2 - zc^2 + cr) + i(2zrzc + cc)
+    float zr = z.x, zc = z.y;
+    float cr = c.x, cc = c.y;
+
+    float numIterations = 0.0f;
+    for (int i = 0; i < MAX_ITERS; i++) {
+        z = vec2(zr * zr - zc * zc + cr, 2 * zr * zc + cc);
+        // check for divergence
+        if (length(z) >= 4.0f) {
+            break;
+        }
+    }
+    // smooth it out with their given formula
+    return EscapeTime(numIterations + 1 - log(log(length(z))) / LOG_2, false);  // not infinity
 }
 
 
