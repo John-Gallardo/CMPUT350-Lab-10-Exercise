@@ -69,19 +69,51 @@ vec2 worldToOldWindow(vec2 worldCoords) {
 // partitions along each dimension. delta((dx, dy)) returns the center of the sub-square
 // which is in the dy'th row and dx'th column (both 0-indexed).
 vec2 delta(vec2 dxy) {
-    // TODO
-    return vec2(0.0);
+    // eg. let A = 2
+    // we split the 1x1 square into 4 subsquares, x is [0, 0.5] and [0.5, 1.0], y is [0.0, 0.5] and [0.5, 1.0]
+    // cartesian product between these gives us the 4 subsquare dimensions
+    vec2 bottomLeft = vec2(1.0 * dxy.x / AA, 1.0 * dxy.y / AA);
+    // (0.5, 0.5) = center offset from bottom left before applying AA
+    // divide by AA to scale properly
+    vec2 centerOffset = vec2(0.5 / AA, 0.5 / AA);
+    return bottomLeft + centerOffset;
 }
 
 
 void main() {
     // 1. convert from screenspace coordinates to world coordinates & calculate escape time
-    vec2 z = windowToWorld(gl_FragCoord.xy);
-    EscapeTime escapeTime = escapeTimeSmooth(z);
+    // vec2 z = windowToWorld(gl_FragCoord.xy);
+    // EscapeTime escapeTime = escapeTimeSmooth(z);
+    //
+    // if (escapeTime.isInf) {
+    //     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    // } else {
+    //     gl_FragColor = colorTime(escapeTime.iters);
+    // }
 
-    if (escapeTime.isInf) {
-        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-    } else {
-        gl_FragColor = colorTime(escapeTime.iters);
+    vec3 colorSum = vec3(0.0, 0.0, 0.0);
+    for (int i = 0; i < AA; i++) {
+        for (int j = 0; j < AA; j++) {
+            // 1. treating current sample as bottom left of pixel due to how my delta function works
+            vec2 bottomLeftOfPixel = gl_FragCoord.xy;
+            
+            // 2. window coordinates is the bottomLeftOfPixel + delta(i, j), the subpixel offset in WINDOW COORDINATES.
+            vec2 windowCoordinates = bottomLeftOfPixel + delta(vec2(float(i), float(j)));
+
+            // 3. calculate world space coordinates and calculate escape time
+            vec2 z  = windowToWorld(windowCoordinates);
+            EscapeTime escapeTime = escapeTimeSmooth(z);
+            
+            // 4. color sum
+            vec4 currColor = vec4(0.0, 0.0, 0.0, 1.0);
+            if (!escapeTime.isInf) {
+                currColor = colorTime(escapeTime.iters);
+            }
+            colorSum += currColor.xyz;
+        }
     }
+
+    // 5. average color & set gl_FragColor
+    colorSum /= TOTAL_SAMPLES;
+    gl_FragColor = vec4(colorSum, 1.0);
 }
