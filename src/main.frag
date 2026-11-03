@@ -14,6 +14,8 @@ uniform vec2 camCenterWorld;
 uniform float camWorldUnitsPerPixel;
 
 // reprojection (1d) may require extra uniforms here...
+uniform float prevCamScale;
+uniform vec2 prevCamPosition;
 
 // Use this to get a color from your smoothed Julia set escape times.
 vec4 colorTime(float t) {
