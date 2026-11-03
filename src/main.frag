@@ -29,19 +29,27 @@ struct EscapeTime {
 EscapeTime escapeTimeSmooth(vec2 z) {
     // NOTE: derive formula by literally manually calculating z^2 + c
     // z^2 + c = (zr^2 - zc^2 + cr) + i(2zrzc + cc)
-    float zr = z.x, zc = z.y;
-    float cr = c.x, cc = c.y;
+    float zr = z.x;
+    float zc = z.y;
+    float cr = c.x;
+    float cc = c.y;
 
-    float numIterations = 0.0f;
-    for (int i = 0; i < MAX_ITERS; i++) {
-        z = vec2(zr * zr - zc * zc + cr, 2 * zr * zc + cc);
+    // i = number of iterations
+    for (int i = 1; i <= MAX_ITERS; i++) {
         // check for divergence
         if (length(z) >= 4.0f) {
-            break;
+            // smooth it out with their given formula
+            return EscapeTime(float(i) + 1.0f - log(log(length(z))) / LOG_2, false);  // did escape
         }
+        z = vec2(zr * zr - zc * zc + cr, 2.0 * zr * zc + cc);
+        zr = z.x;
+        zc = z.y;
+        cr = c.x;
+        cc = c.y;
     }
-    // smooth it out with their given formula
-    return EscapeTime(numIterations + 1 - log(log(length(z))) / LOG_2, false);  // not infinity
+    
+    // never escaped -> escape time is infinite
+    return EscapeTime(0.0f, true);
 }
 
 
@@ -53,6 +61,7 @@ vec2 windowToWorld(vec2 windowCoords) {
 // For reprojection
 vec2 worldToOldWindow(vec2 worldCoords) {
     // TODO
+    return vec2(0.0);
 }
 
 // For SSAA
@@ -61,10 +70,18 @@ vec2 worldToOldWindow(vec2 worldCoords) {
 // which is in the dy'th row and dx'th column (both 0-indexed).
 vec2 delta(vec2 dxy) {
     // TODO
+    return vec2(0.0);
 }
 
 
 void main() {
-    // TODO
-    // gl_FragColor = ... some vec4 rgba colour
+    // 1. convert from screenspace coordinates to world coordinates & calculate escape time
+    vec2 z = windowToWorld(gl_FragCoord.xy);
+    EscapeTime escapeTime = escapeTimeSmooth(z);
+
+    if (escapeTime.isInf) {
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    } else {
+        gl_FragColor = colorTime(escapeTime.iters);
+    }
 }

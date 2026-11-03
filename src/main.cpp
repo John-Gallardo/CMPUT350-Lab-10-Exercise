@@ -122,6 +122,7 @@ int main() {
         shader.setUniform("camWorldUnitsPerPixel", worldUnitsPerPixel);
 
         window.clear(sf::Color::Black);
+        window.draw(fullscreenTriangle, &shader);
         // TODO something.draw(fullscreenTriangle, &shader);
         // this might change as you finish more parts!
         cText.setString("c = (" + std::to_string(c.x) + ", " + std::to_string(c.y) + ")");
