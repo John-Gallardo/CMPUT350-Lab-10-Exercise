@@ -46,7 +46,8 @@ EscapeTime escapeTimeSmooth(vec2 z) {
 
 
 vec2 windowToWorld(vec2 windowCoords) {
-    // TODO
+    // NOTE: formula from lab 9 exercise
+    return camCenterWorld - ((windowSizePixels * 0.5f) * camWorldUnitsPerPixel) + (windowCoords * camWorldUnitsPerPixel);
 }
 
 // For reprojection
