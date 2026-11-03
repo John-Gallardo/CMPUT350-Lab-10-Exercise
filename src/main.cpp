@@ -114,6 +114,12 @@ int main() {
             maxIters = std::min(maxIters * 2, TRUE_MAX_ITERS);
         }
         // TODO set shader uniforms here...
+        // 1. Setting uniforms in main.frag
+        shader.setUniform("c", c);
+        shader.setUniform("MAX_ITERS", INIT_ITERS);  // NOTE: I assume this is set first bec. 16k might be too slow?
+        shader.setUniform("windowSizePixels", sf::Vector2f{window.getSize()});
+        shader.setUniform("camCenterWorld", camCenterWorld);
+        shader.setUniform("camWorldUnitsPerPixel", worldUnitsPerPixel);
 
         window.clear(sf::Color::Black);
         // TODO something.draw(fullscreenTriangle, &shader);
